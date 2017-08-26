@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, NgZone } from "@angular/core";
 import { RegistroUsuario } from "../login/user";
 import { Observable, EventData } from 'data/observable'
 import { TnsSideDrawer, TnsSideDrawerOptions } from 'nativescript-sidedrawer'
@@ -17,6 +17,7 @@ import { FirebaseService } from "./firebase.service";
 export class MenuComponent extends   Observable  {
 	// Your TypeScript logic goes here
 	usuario: RegistroUsuario;
+	 mockChat:Array<any> = [];
 
 	private _i: number = 0
 	get i(): number {
@@ -27,9 +28,13 @@ export class MenuComponent extends   Observable  {
 		this.notifyPropertyChange('i', i)
 	}
 
-	constructor(private routEx: RouterExtensions,
-		//private firebaseService: FirebaseService,
-	) {
+	constructor(private routEx: RouterExtensions, private ngZone: NgZone ){
+        
+			firebase.addChildEventListener((result:any)=>{
+			    this.ngZone.run(() => {
+				this.onQueryEvent(result);
+			    });
+			}, "/users");
 		super();
 
 		var img = new ImageSource();
@@ -76,6 +81,20 @@ export class MenuComponent extends   Observable  {
 
 
 	}
+	
+	onQueryEvent(result:any){
+        console.log("Event type: " + result.type);
+        console.log("Key: " + result.key);
+        console.log("Value: " + JSON.stringify(result.value));
+        if(result){
+            if(result.error){
+                console.dir("error");
+            }
+            else if (result.value){
+                this.mockChat.push(result.value);
+            }
+        }
+    }
 
 	toggleit() {
 		TnsSideDrawer.toggle()
