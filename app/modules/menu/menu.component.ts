@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, NgZone } from "@angular/core";
 import { RegistroUsuario } from "../login/user";
 import { Observable, EventData } from 'data/observable'
 import { TnsSideDrawer, TnsSideDrawerOptions } from 'nativescript-sidedrawer'
@@ -17,6 +17,8 @@ import { FirebaseService } from "./firebase.service";
 export class MenuComponent extends   Observable  {
 	// Your TypeScript logic goes here
 	usuario: RegistroUsuario;
+	
+	mockChat: Array<any> = [];
 
 	private _i: number = 0
 	get i(): number {
@@ -30,6 +32,27 @@ export class MenuComponent extends   Observable  {
 	constructor(private routEx: RouterExtensions,
 		//private firebaseService: FirebaseService,
 	) {
+		
+		
+		firebase.push(
+		    '/users',
+		    {
+			"id": 3, 
+			"nombre": "Pepe",
+			"apellido": "Mujica"
+		    }
+		).then(
+		    function (result) {
+			console.log("created key: " + result.key);
+		    }
+		);
+		
+		firebase.addChildEventListener((result:any)=>{
+		    this.ngZone.run(() => {
+			this.onQueryEvent(result);
+		    });
+		}, "/users");
+		
 		super();
 
 		var img = new ImageSource();
@@ -73,14 +96,29 @@ export class MenuComponent extends   Observable  {
 			headerBackgroundColor: new Color("#2793ff"),
 		});
 
-
-
 	}
 
 	toggleit() {
 		TnsSideDrawer.toggle()
 	}
 
+	onQueryEvent(result:any){
+		console.log("Event type: " + result.type);
+		console.log("Key: " + result.key);
+		console.log("Value: " + JSON.stringify(result.value));
+		if(result){
+		    if(result.error){
+			console.dir("error");
+		    }
+		    else if (result.value){
+			this.mockChat.push(result.value);
+		    }
+		}
+    	}
+	
+	
+	
+	
 	/**
 	 * listenerTable
 	 */
